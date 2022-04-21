@@ -1,0 +1,42 @@
+<html lang="en">
+	<head>
+		<title>Minesweeper</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+
+		<!-- STYLE -->
+		<link rel="stylesheet" href="css/style.css">
+		<script rel="preconnect" src="https://kit.fontawesome.com/241f6baf1e.js"></script>
+
+		<!-- FONT -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Akshar&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<header>
+			<label id="difficulty">
+				<select onchange="startGame(this.value)">
+					<option value="0" selected>Easy</option>
+					<option value="1">Medium</option>
+					<option value="2">Hard</option>
+				</select>
+			</label>
+			<span class="counter" id="flag-counter">
+				<i class="fa-solid fa-flag"></i>
+				<p></p>
+			</span>
+			<span class="counter" id="timer">
+				<i class="fa-solid fa-hourglass"></i>
+				<p></p>
+			</span>
+		</header>
+	
+		<main>
+			<div id="grid">
+
+			</div>
+		</main>
+	
+		<script src="js/index.js"></script>
+	</body>
+</html>

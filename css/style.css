@@ -1,0 +1,194 @@
+:root {
+	--text-color: #fff;
+	--background-color-a: #4AC0FD;
+	--background-color-b: #181a1b;
+
+	--red: #F23607;
+	--yellow: #FFBF00;
+	--green: #388E3C;
+	--blue: #1976D2;
+
+	--grass-hover: #BFE17D;
+	--grass-a: #AAD751;
+	--grass-b: #A2D149;
+
+	--sand-a: #E5C29F;
+	--sand-b: #D7B899;
+
+	--font-family: "Akshar", sans-serif;
+	--header-height: 75px;
+	--grid-margin: 50px;
+}
+
+html {
+	color: var(--text-color);
+	background-color: var(--background-color-a);
+	font-size: 16px;
+	font-family: var(--font-family);
+}
+
+body {
+	margin: 0;
+	overflow: hidden;
+}
+
+/* #region HEADER */
+
+header {
+	display: flex;
+	gap: 15px;
+	flex-direction: row;
+	align-items: center;
+	width: 100%;
+	height: var(--header-height);
+	padding: 10px 20px;
+    box-sizing: border-box;
+}
+
+#difficulty {
+	position: relative;
+	width: 75px;
+	display: flex;
+	gap: 10px;
+	flex-direction: row;
+	align-items: center;
+	color: var(--text-color);
+	background-color: var(--background-color-b);
+	border-radius: 5px;
+	padding: 10px;
+	cursor: pointer;
+}
+
+#difficulty:after {
+	content: "\f0d7";
+	font-family: "Font Awesome 6 Free";
+	font-weight: 900;
+	margin-left: 65px;
+}
+
+#difficulty select {
+	position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+	padding-left: 10px;
+	appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+	color: inherit;
+	background: none;
+	border: none;
+	outline: none;
+	font-family: var(--font-family);
+	font-size: 1rem;
+	cursor: inherit;
+}
+
+#difficulty select * {
+	background: var(--background-color-b);
+}
+
+#difficulty select::-ms-expand {
+	display: none;
+}
+
+.counter {
+	display: flex;
+	gap: 5px;
+	flex-direction: row;
+	align-items: center;
+}
+
+.counter i {
+	font-size: 1.25rem;
+}
+
+.counter p {
+	color: var(--background-color-b);
+	font-weight: 900;
+}
+
+.counter#flag-counter i {
+	color: var(--red);
+}
+
+.counter#timer i {
+	color: var(--yellow);
+}
+
+/* #endregion */
+
+/* #region GRID */
+
+main {
+	display: flex;
+    justify-content: center;
+    height: calc(100% - var(--header-height));
+}
+
+#grid {
+	display: grid;
+	width: 75%;
+	background-color: var(--grass-a);
+	outline: 3px var(--green) solid;
+}
+
+.tile {
+	aspect-ratio: 1;
+	background-color: var(--grass-a);
+	cursor: pointer;
+
+	user-select: none;
+		-moz-user-select: none;
+		-khtml-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+		-webkit-touch-callout: none;
+
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.tile.odd {
+	background-color: var(--grass-b);
+}
+
+.tile:not(.dug):hover {
+	background-color: var(--grass-hover);
+}
+
+.tile.dug {
+	color: var(--blue);
+	background-color: var(--sand-a);
+	font-size: calc(var(--icon-size) * 2);
+	font-weight: 900;
+}
+
+.tile.dug.odd {
+	background-color: var(--sand-b);
+}
+
+.tile.dug, .tile.bomb, .tile.flag {
+	display: flex;
+	justify-content: center;
+    align-items: center;
+}
+
+.tile.bomb:before {
+	content: "\f1e2";
+	color: var(--background-color-b);
+	font-family: "Font Awesome 6 Free";
+	font-weight: 900;
+	font-size: calc(var(--icon-size) * 1.5);
+}
+
+.tile.flag:before {
+	content: "\f024";
+	color: var(--red);
+	font-family: "Font Awesome 6 Free";
+	font-weight: 900;
+	font-size: calc(var(--icon-size) * 1.25);
+}
+
+/* #endregion */
