@@ -192,3 +192,13 @@ main {
 }
 
 /* #endregion */
+
+/* #region RESPONSIVENESS */
+
+@media screen and (max-width: 660px) {
+	:root {
+		--grid-margin: 20px;
+	}
+}
+
+/* #endregion */

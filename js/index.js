@@ -8,9 +8,12 @@ const difficultyDropdown = document.querySelector("#difficulty select");
 let size;
 let bombCount;
 let bombs;
+let flagCount;
 let timerInterval;
 let gameOver;
 let checkedTiles;
+let holdCompleted = false;
+let holdTimeout;
 
 const tileRevealDelay = 150;
 const flagHoldDuration = 250;
@@ -57,20 +60,30 @@ function revealArea(xPos, yPos) {
 	}
 }
 
+function toggleFlag(tile, add) {
+	if (add && flagCount > 0) {
+		tile.classList.add("flag");
+		flagCount--;
+	} else if (!add) {
+		tile.classList.remove("flag");
+		flagCount++;
+	}
+
+	flagCounter.textContent = flagCount;
+}
+
 function revealTile(tile, isRightClick, area) {
 	if (gameOver || tile.classList.contains("dug"))
 		return;
-
-	console.log(isRightClick);
 
 	const x = parseInt(tile.getAttribute("data-x"));
 	const y = parseInt(tile.getAttribute("data-y"));
 
 	if (tile.classList.contains("flag"))
-		return tile.classList.remove("flag");
+		return toggleFlag(tile, false);
 
 	if (isRightClick) {
-		tile.classList.add("flag");
+		toggleFlag(tile, true);
 	} else {
 		tile.classList.add("dug");
 
@@ -107,10 +120,34 @@ function startTimer() {
 	}, 100);
 }
 
+function mouseDown(event) {
+	event.preventDefault();
+
+	if (event.button == 2)
+		return;
+
+	holdCompleted = false;
+
+	holdTimeout = setTimeout(() => {
+		revealTile(event.target, true);
+		holdCompleted = true;
+	}, flagHoldDuration);
+}
+
+function mouseUp(event) {
+	event.preventDefault();
+
+	if (event.button == 2)
+		return;
+
+	clearTimeout(holdTimeout);
+
+	if (!holdCompleted)
+		revealTile(event.target, false, true);
+}
+
 function startGame(difficulty) {
 	size = (parseInt(difficulty) + 1) * 9;
-	bombCount = size;
-	bombs = [];
 	gameOver = false;
 
 	// GRID
@@ -125,36 +162,20 @@ function startGame(difficulty) {
 			tile.setAttribute("data-x", x);
 			tile.setAttribute("data-y", y);
 
-			let holding = false;
-			let holdCompleted = false;
-
 			tile.addEventListener("mousedown", function(event) {
-				event.preventDefault();
+				mouseDown(event);
+			});
 
-				if (event.button == 2)
-					return;
-
-				holding = true;
-				holdCompleted = false;
-
-				setTimeout(() => {
-					if (holding) {
-						revealTile(event.target, true);
-						holdCompleted = true;
-					}
-				}, flagHoldDuration);
+			tile.addEventListener("touchstart", function(event) {
+				mouseDown(event);
 			});
 
 			tile.addEventListener("mouseup", function(event) {
-				event.preventDefault();
+				mouseUp(event);
+			});
 
-				if (event.button == 2)
-					return;
-
-				holding = false;
-
-				if (!holdCompleted)
-					revealTile(event.target, false, true);
+			tile.addEventListener("touchend", function(event) {
+				mouseUp(event);
 			});
 
 			tile.addEventListener("contextmenu", function(event) {
@@ -173,7 +194,8 @@ function startGame(difficulty) {
 	}
 
 	// BOMBS
-	flagCounter.textContent = bombCount;
+	bombCount = size;
+	bombs = [];
 
 	for (let i = 0; i < bombCount; i++) {
 		let x;
@@ -186,6 +208,10 @@ function startGame(difficulty) {
 
 		bombs.push({x: x, y: y});
 	}
+
+	// FLAGS
+	flagCount = bombCount
+	flagCounter.textContent = flagCount;
 
 	startTimer();
 }
