@@ -10,13 +10,20 @@ let bombCount;
 let bombs;
 let timerInterval;
 let gameOver;
+let checkedTiles;
+
+const tileRevealDelay = 150;
+const flagHoldDuration = 250;
 
 function getTileNumber(xPos, yPos) {
 	let bombsNearTile = 0;
 
-	for (let x = 0; x < 3; x++) {
-		for (let y = 0; y < 3; y++) {
-			if (hasBomb(xPos + x - 1, yPos + y - 1))
+	for (let i = 0; i < 3; i++) {
+		for (let j = 0; j < 3; j++) {
+			const x = xPos + i - 1;
+			const y = yPos + j - 1;
+			
+			if (hasBomb(x, y))
 				bombsNearTile++;
 		}
 	}
@@ -24,9 +31,37 @@ function getTileNumber(xPos, yPos) {
 	return bombsNearTile;
 }
 
-function processTileClick(tile, isRightClick) {
+function revealArea(xPos, yPos) {
+	if (getTileNumber(xPos, yPos) == 0) {
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				const x = xPos + i - 1;
+				const y = yPos + j - 1;
+
+				const tile = grid.children[x + size * y];
+				if (x >= 0 && x < size && y >= 0 && y < size && !checkedTiles.includes(tile)) {
+					setTimeout(() => {
+						if (!tile.classList.contains("flag"))
+							revealTile(tile);
+						checkedTiles.push(tile);
+
+						if (getTileNumber(x, y) == 0) {
+							revealArea(x, y);
+						}
+					}, tileRevealDelay);
+					
+				}
+				
+			}
+		}
+	}
+}
+
+function revealTile(tile, isRightClick, area) {
 	if (gameOver || tile.classList.contains("dug"))
 		return;
+
+	console.log(isRightClick);
 
 	const x = parseInt(tile.getAttribute("data-x"));
 	const y = parseInt(tile.getAttribute("data-y"));
@@ -45,8 +80,12 @@ function processTileClick(tile, isRightClick) {
 		} else {
 			const bombsNearTile = getTileNumber(x, y);
 
-			if (bombsNearTile > 0)
+			if (bombsNearTile > 0) {
 				tile.textContent = bombsNearTile;
+			} else if (area) {
+				checkedTiles = [];
+				revealArea(x, y);
+			}
 		}
 	}
 }
@@ -86,14 +125,42 @@ function startGame(difficulty) {
 			tile.setAttribute("data-x", x);
 			tile.setAttribute("data-y", y);
 
-			tile.addEventListener("click", function(event) {
-				processTileClick(event.target, false);
+			let holding = false;
+			let holdCompleted = false;
+
+			tile.addEventListener("mousedown", function(event) {
+				event.preventDefault();
+
+				if (event.button == 2)
+					return;
+
+				holding = true;
+				holdCompleted = false;
+
+				setTimeout(() => {
+					if (holding) {
+						revealTile(event.target, true);
+						holdCompleted = true;
+					}
+				}, flagHoldDuration);
+			});
+
+			tile.addEventListener("mouseup", function(event) {
+				event.preventDefault();
+
+				if (event.button == 2)
+					return;
+
+				holding = false;
+
+				if (!holdCompleted)
+					revealTile(event.target, false, true);
 			});
 
 			tile.addEventListener("contextmenu", function(event) {
 				event.preventDefault();
-				processTileClick(event.target, true);
-			})
+				revealTile(event.target, true)
+			});
 
 			const oddX = x % 2 != 0;
 			const oddY = y % 2 != 0;
