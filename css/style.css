@@ -140,7 +140,6 @@ main {
 .tile {
 	aspect-ratio: 1;
 	background-color: var(--grass-a);
-	cursor: pointer;
 
 	user-select: none;
 		-moz-user-select: none;
@@ -155,6 +154,10 @@ main {
 
 .tile.odd {
 	background-color: var(--grass-b);
+}
+
+.tile:not(.dug) {
+	cursor: pointer;
 }
 
 .tile:not(.dug):hover {
