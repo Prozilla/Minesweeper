@@ -6,6 +6,8 @@ const timer = document.querySelector("#timer p");
 const difficultyDropdown = document.querySelector("#difficulty select");
 
 let size;
+let tileCount;
+let revealedTileCount;
 let bombCount;
 let bombs;
 let flagCount;
@@ -14,9 +16,28 @@ let gameOver;
 let checkedTiles;
 let holdCompleted = false;
 let holdTimeout;
+let generatedBombs = false;
 
-const tileRevealDelay = 150;
+const tileRevealDelay = 100;
 const flagHoldDuration = 250;
+
+//#region TILES
+
+function generateBombs(xPos, yPos) {
+	generatedBombs = true;
+
+	for (let i = 0; i < bombCount; i++) {
+		let x;
+		let y;
+
+		do {
+			x = Math.floor(Math.random() * size);
+			y = Math.floor(Math.random() * size);
+		} while(hasBomb(x, y) || (x >= xPos - 1 && x <= xPos + 1) || (y >= yPos - 1 && y <= yPos + 1));
+
+		bombs.push({x: x, y: y});
+	}
+}
 
 function getTileNumber(xPos, yPos) {
 	let bombsNearTile = 0;
@@ -34,7 +55,17 @@ function getTileNumber(xPos, yPos) {
 	return bombsNearTile;
 }
 
-function revealArea(xPos, yPos) {
+function revealTileInArea(tile, x, y, depth) {
+	if (!tile.classList.contains("flag"))
+		revealTile(tile);
+
+	checkedTiles.push(tile);
+
+	if (getTileNumber(x, y) == 0)
+		revealArea(x, y, depth + 1);
+}
+
+function revealArea(xPos, yPos, depth) {
 	if (getTileNumber(xPos, yPos) == 0) {
 		for (let i = 0; i < 3; i++) {
 			for (let j = 0; j < 3; j++) {
@@ -43,16 +74,15 @@ function revealArea(xPos, yPos) {
 
 				const tile = grid.children[x + size * y];
 				if (x >= 0 && x < size && y >= 0 && y < size && !checkedTiles.includes(tile)) {
-					setTimeout(() => {
-						if (!tile.classList.contains("flag"))
-							revealTile(tile);
-						checkedTiles.push(tile);
+					const delay = tileRevealDelay - (tileRevealDelay / 20 * depth * depth)  - (Math.random() * tileRevealDelay / 10);
 
-						if (getTileNumber(x, y) == 0) {
-							revealArea(x, y);
-						}
-					}, tileRevealDelay);
-					
+					if (delay <= 0) {
+						revealTileInArea(tile, x, y, depth);
+					} else {
+						setTimeout(() => {
+							revealTileInArea(tile, x, y, depth);
+						}, delay);
+					}
 				}
 				
 			}
@@ -79,6 +109,9 @@ function revealTile(tile, isRightClick, area) {
 	const x = parseInt(tile.getAttribute("data-x"));
 	const y = parseInt(tile.getAttribute("data-y"));
 
+	if (!generatedBombs)
+		generateBombs(x, y);
+
 	if (tile.classList.contains("flag"))
 		return toggleFlag(tile, false);
 
@@ -86,10 +119,11 @@ function revealTile(tile, isRightClick, area) {
 		toggleFlag(tile, true);
 	} else {
 		tile.classList.add("dug");
+		revealedTileCount++;
 
 		if (hasBomb(x, y)) {
 			tile.classList.add("bomb");
-			endGame();
+			endGame(false);
 		} else {
 			const bombsNearTile = getTileNumber(x, y);
 
@@ -97,9 +131,18 @@ function revealTile(tile, isRightClick, area) {
 				tile.textContent = bombsNearTile;
 			} else if (area) {
 				checkedTiles = [];
-				revealArea(x, y);
+				revealArea(x, y, 0);
 			}
+
+			if (tileCount == revealedTileCount + bombCount)
+				endGame(true);
 		}
+	}
+}
+
+function revealGrid() {
+	for (let i = 0; i < grid.children.length; i++) {
+		revealTile(grid.children[i], false, false);
 	}
 }
 
@@ -107,18 +150,86 @@ function hasBomb(x, y) {
 	return bombs.some(bomb => bomb.x == x && bomb.y == y);
 }
 
-function startTimer() {
-	const start = Date.now();
+//#endregion
 
-	clearInterval(timerInterval);
-	timerInterval = setInterval(() => {
-		const delta = Date.now() - start;
-		const seconds = Math.floor(delta / 1000);
-		const time = seconds < 10 ? "00" + seconds : seconds < 100 ? "0" + seconds : seconds < 1000 ? seconds : 999; 
+//#region GAME EVENTS
 
-		timer.textContent = time;
-	}, 100);
+function startGame(difficulty) {
+	gameOver = false;
+	generatedBombs = false;
+
+	fetch("difficulties.json").then(function(result) {
+		return result.json();
+	}).then(function(result) {
+		// GRID
+		size = result[difficulty].size;
+		tileCount = size * size;
+		revealedTileCount = 0;
+
+		grid.style.gridTemplateColumns = "1fr ".repeat(size);
+		grid.innerHTML = null;
+		
+		for (let y = 0; y < size; y++) {
+			for (let x = 0; x < size; x++) {
+				const tile = document.createElement("div");
+
+				tile.classList.add("tile");
+				tile.setAttribute("data-x", x);
+				tile.setAttribute("data-y", y);
+
+				tile.addEventListener("mousedown", function(event) {
+					mouseDown(event);
+				});
+
+				tile.addEventListener("touchstart", function(event) {
+					mouseDown(event);
+				});
+
+				tile.addEventListener("mouseup", function(event) {
+					mouseUp(event);
+				});
+
+				tile.addEventListener("touchend", function(event) {
+					mouseUp(event);
+				});
+
+				tile.addEventListener("contextmenu", function(event) {
+					event.preventDefault();
+					revealTile(event.target, true)
+				});
+
+				const oddX = x % 2 != 0;
+				const oddY = y % 2 != 0;
+
+				if (oddX == oddY)
+					tile.classList.add("odd");
+
+				grid.appendChild(tile);
+			}
+		}
+
+		// BOMBS
+		bombCount = result[difficulty].bombs;
+		bombs = [];
+
+		// FLAGS
+		flagCount = bombCount
+		flagCounter.textContent = flagCount;
+
+		startTimer();
+		resizeGrid();
+	});
 }
+
+function endGame(won) {
+	gameOver = true;
+	clearInterval(timerInterval);
+	console.log(won);
+}
+
+//#endregion
+
+//#region INPUT
 
 function mouseDown(event) {
 	event.preventDefault();
@@ -146,82 +257,27 @@ function mouseUp(event) {
 		revealTile(event.target, false, true);
 }
 
-function startGame(difficulty) {
-	size = (parseInt(difficulty) + 1) * 9;
-	gameOver = false;
+//#endregion
 
-	// GRID
-	grid.style.gridTemplateColumns = "1fr ".repeat(size);
-	grid.innerHTML = null;
-	
-	for (let y = 0; y < size; y++) {
-		for (let x = 0; x < size; x++) {
-			const tile = document.createElement("div");
+//#region SETUP
 
-			tile.classList.add("tile");
-			tile.setAttribute("data-x", x);
-			tile.setAttribute("data-y", y);
+function startTimer() {
+	const start = Date.now();
 
-			tile.addEventListener("mousedown", function(event) {
-				mouseDown(event);
-			});
-
-			tile.addEventListener("touchstart", function(event) {
-				mouseDown(event);
-			});
-
-			tile.addEventListener("mouseup", function(event) {
-				mouseUp(event);
-			});
-
-			tile.addEventListener("touchend", function(event) {
-				mouseUp(event);
-			});
-
-			tile.addEventListener("contextmenu", function(event) {
-				event.preventDefault();
-				revealTile(event.target, true)
-			});
-
-			const oddX = x % 2 != 0;
-			const oddY = y % 2 != 0;
-
-			if (oddX == oddY)
-				tile.classList.add("odd");
-
-			grid.appendChild(tile);
-		}
-	}
-
-	// BOMBS
-	bombCount = size;
-	bombs = [];
-
-	for (let i = 0; i < bombCount; i++) {
-		let x;
-		let y;
-
-		do {
-			x = Math.floor(Math.random() * size);
-			y = Math.floor(Math.random() * size);
-		} while(hasBomb(x, y))
-
-		bombs.push({x: x, y: y});
-	}
-
-	// FLAGS
-	flagCount = bombCount
-	flagCounter.textContent = flagCount;
-
-	startTimer();
-}
-
-function endGame() {
-	gameOver = true;
 	clearInterval(timerInterval);
+	timerInterval = setInterval(() => {
+		const delta = Date.now() - start;
+		const seconds = Math.floor(delta / 1000);
+		const time = seconds < 10 ? "00" + seconds : seconds < 100 ? "0" + seconds : seconds < 1000 ? seconds : 999; 
+
+		timer.textContent = time;
+	}, 100);
 }
 
 function setFontSize() {
+	if (!grid.firstElementChild)
+		return;
+
 	const fontSize = grid.firstElementChild.getBoundingClientRect().width / 3;
 	grid.style.setProperty("--icon-size", fontSize + "px");
 }
@@ -259,3 +315,5 @@ function setUp() {
 }
 
 setUp();
+
+//#endregion

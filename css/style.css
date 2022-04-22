@@ -1,23 +1,26 @@
 :root {
 	--text-color: #fff;
-	--background-color-a: #4AC0FD;
-	--background-color-b: #181a1b;
+	--background-color-a: #4bcffa;
+	--background-color-b: #1e272e;
 
-	--red: #F23607;
-	--yellow: #FFBF00;
-	--green: #388E3C;
-	--blue: #1976D2;
+	--red: #ff5e57;
+	--yellow: #ffc048;
+	--green: #0be881;
+	--blue: #575fcf;
 
-	--grass-hover: #BFE17D;
-	--grass-a: #AAD751;
-	--grass-b: #A2D149;
+	--grass-hover: #3cf69f;
+	--grass-a: #0be881;
+	--grass-b: #05c46b;
 
-	--sand-a: #E5C29F;
-	--sand-b: #D7B899;
+	--sand-a: #ffdd59;
+	--sand-b: #ffd32a;
 
 	--font-family: "Akshar", sans-serif;
 	--header-height: 75px;
 	--grid-margin: 50px;
+
+	--flag: "\f024";
+	--bomb: "\f111";
 }
 
 html {
@@ -131,7 +134,7 @@ main {
 	display: grid;
 	width: 75%;
 	background-color: var(--grass-a);
-	outline: 3px var(--green) solid;
+	/* outline: 3px var(--green) solid; */
 }
 
 .tile {
@@ -176,7 +179,7 @@ main {
 }
 
 .tile.bomb:before {
-	content: "\f1e2";
+	content: var(--bomb);
 	color: var(--background-color-b);
 	font-family: "Font Awesome 6 Free";
 	font-weight: 900;
@@ -184,11 +187,15 @@ main {
 }
 
 .tile.flag:before {
-	content: "\f024";
+	content: var(--flag);
 	color: var(--red);
 	font-family: "Font Awesome 6 Free";
 	font-weight: 900;
 	font-size: calc(var(--icon-size) * 1.25);
+}
+
+.title.flag.correct:before {
+	color: var(--background-color-b);
 }
 
 /* #endregion */
