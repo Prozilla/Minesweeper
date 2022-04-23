@@ -11,6 +11,7 @@ let revealedTileCount;
 let bombCount;
 let bombs;
 let flagCount;
+let correctFlagsCount;
 let timerInterval;
 let gameOver;
 let checkedTiles;
@@ -55,6 +56,13 @@ function getTileNumber(xPos, yPos) {
 	return bombsNearTile;
 }
 
+function getTileCoordinate(tile) {
+	const x = parseInt(tile.getAttribute("data-x"));
+	const y = parseInt(tile.getAttribute("data-y"));
+
+	return {x, y};
+}
+
 function revealTileInArea(tile, x, y, depth) {
 	if (!tile.classList.contains("flag"))
 		revealTile(tile);
@@ -91,13 +99,27 @@ function revealArea(xPos, yPos, depth) {
 }
 
 function toggleFlag(tile, add) {
+	const {x, y} = getTileCoordinate(tile);
+
 	if (add && flagCount > 0) {
 		tile.classList.add("flag");
 		flagCount--;
+
+		if (hasBomb(x, y)) {
+			correctFlagsCount++;
+
+			if (correctFlagsCount == bombCount)
+				endGame(true);
+		}
 	} else if (!add) {
 		tile.classList.remove("flag");
 		flagCount++;
+
+		if (hasBomb(x, y))
+			correctFlagsCount--;
 	}
+
+	console.log(correctFlagsCount);
 
 	flagCounter.textContent = flagCount;
 }
@@ -106,8 +128,7 @@ function revealTile(tile, isRightClick, area) {
 	if (gameOver || tile.classList.contains("dug"))
 		return;
 
-	const x = parseInt(tile.getAttribute("data-x"));
-	const y = parseInt(tile.getAttribute("data-y"));
+	const {x, y} = getTileCoordinate(tile);
 
 	if (!generatedBombs)
 		generateBombs(x, y);
@@ -133,9 +154,6 @@ function revealTile(tile, isRightClick, area) {
 				checkedTiles = [];
 				revealArea(x, y, 0);
 			}
-
-			if (tileCount == revealedTileCount + bombCount)
-				endGame(true);
 		}
 	}
 }
@@ -215,6 +233,7 @@ function startGame(difficulty) {
 		// FLAGS
 		flagCount = bombCount
 		flagCounter.textContent = flagCount;
+		correctFlagsCount = 0;
 
 		startTimer();
 		resizeGrid();
