@@ -23,6 +23,12 @@ const terminalVelocity = 15;
 
 randomRange = (min, max) => Math.random() * (max - min) + min;
 
+randomRangeInt = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 const velocityX = {min: -1, max: 1};
 const velocityY = {min: -2, max: 0};
 

@@ -97,12 +97,23 @@ function revealArea(xPos, yPos, depth) {
 	}
 }
 
+function initTileParticles(tile, colors, min, max) {
+	const rect = tile.getBoundingClientRect();
+	for (let i = 0; i < randomRangeInt(min, max); i++) {
+		const color = colors[Math.floor(Math.random() * colors.length)];
+		initParticle(color, {x: randomRange(rect.left, rect.right), y: randomRange(rect.top, rect.bottom)}, 1);
+	}
+}
+
 function toggleFlag(tile, add) {
 	const {x, y} = getTileCoordinate(tile);
 
 	if (add && flagCount > 0) {
 		tile.classList.add("flag");
 		flagCount--;
+
+		// Particles
+		initTileParticles(tile, ["red"], 1, 2);
 
 		if (hasBomb(x, y)) {
 			correctFlagsCount++;
@@ -140,11 +151,7 @@ function revealTile(tile, isRightClick, area) {
 		revealedTileCount++;
 
 		// Particles
-		const rect = tile.getBoundingClientRect();
-		for (let i = 0; i < randomRange(1, 3); i++) {
-			const color = Math.random > 0.5 ? "sand-a" : "sand-b";
-			initParticle(color, {x: randomRange(rect.left, rect.right), y: randomRange(rect.top, rect.bottom)}, 1);
-		}
+		initTileParticles(tile, ["sand-a", "sand-b"], 1, 3);
 
 		if (hasBomb(x, y)) {
 			tile.classList.add("bomb");
