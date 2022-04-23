@@ -135,7 +135,7 @@ function revealTile(tile, isRightClick, manualClick) {
 	if (!generatedBombs)
 		generateBombs(x, y);
 
-	if (tile.classList.contains("flag"))
+	if (!gameOver && tile.classList.contains("flag"))
 		return toggleFlag(tile, false);
 
 	if (isRightClick) {
