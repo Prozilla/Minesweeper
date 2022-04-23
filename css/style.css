@@ -2,6 +2,7 @@
 	--text-color: #fff;
 	--background-color-a: #4bcffa;
 	--background-color-b: #1e272e;
+	--background-color-c: #485460;
 
 	--red: #ff5e57;
 	--yellow: #ffc048;
@@ -179,6 +180,10 @@ main {
 	display: flex;
 	justify-content: center;
     align-items: center;
+}
+
+.tile.bomb {
+	background-color: var(--background-color-c) !important;
 }
 
 .tile.bomb:before {

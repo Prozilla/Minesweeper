@@ -99,14 +99,6 @@ function revealArea(xPos, yPos, depth) {
 	}
 }
 
-function initTileParticles(tile, colors, min, max) {
-	const rect = tile.getBoundingClientRect();
-	for (let i = 0; i < randomRangeInt(min, max); i++) {
-		const color = colors[Math.floor(Math.random() * colors.length)];
-		initParticle(color, {x: randomRange(rect.left, rect.right), y: randomRange(rect.top, rect.bottom)}, 1);
-	}
-}
-
 function toggleFlag(tile, add) {
 	const {x, y} = getTileCoordinate(tile);
 
@@ -134,8 +126,8 @@ function toggleFlag(tile, add) {
 	flagCounter.textContent = flagCount;
 }
 
-function revealTile(tile, isRightClick, area) {
-	if (gameOver || tile.classList.contains("dug"))
+function revealTile(tile, isRightClick, manualClick) {
+	if (manualClick && gameOver || tile.classList.contains("dug"))
 		return;
 
 	const {x, y} = getTileCoordinate(tile);
@@ -157,13 +149,15 @@ function revealTile(tile, isRightClick, area) {
 
 		if (hasBomb(x, y)) {
 			tile.classList.add("bomb");
-			endGame(false);
+
+			if (!gameOver)
+				endGame(false);
 		} else {
 			const bombsNearTile = getTileNumber(x, y);
 
 			if (bombsNearTile > 0) {
 				tile.textContent = bombsNearTile;
-			} else if (area) {
+			} else if (manualClick) {
 				checkedTiles = [];
 				revealArea(x, y, 0);
 			}
@@ -173,7 +167,7 @@ function revealTile(tile, isRightClick, area) {
 
 function revealGrid() {
 	for (let i = 0; i < grid.children.length; i++) {
-		revealTile(grid.children[i], false, false);
+		revealTile(grid.children[i]);
 	}
 }
 
@@ -257,6 +251,32 @@ function endGame(won) {
 	gameOver = true;
 	clearInterval(timerInterval);
 	console.log(won ? "won" : "lost");
+
+	if (!won) {
+		setTimeout(() => {
+			let initialDelay = 500;
+			let delay = initialDelay;
+			let previousDelay = 0;
+
+			for (let i = 0; i < bombs.length; i++) {
+				const tile = grid.children[bombs[i].x + size * bombs[i].y];
+
+				delay = initialDelay - i * i;
+				if (delay < 10)
+					delay = 10;
+
+				delay += previousDelay;
+				previousDelay = delay;
+
+				console.log(delay);
+
+				if (!tile.classList.contains("flag"))
+					setTimeout(() => {
+						revealTile(tile);
+					}, delay);
+			}
+		}, 150);
+	}
 }
 
 //#endregion

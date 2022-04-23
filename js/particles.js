@@ -57,6 +57,15 @@ function initParticle(colorName, position, amount) {
 	}
 }
 
+function initTileParticles(tile, colors, min, max) {
+	const rect = tile.getBoundingClientRect();
+	
+	for (let i = 0; i < randomRangeInt(min, max); i++) {
+		const color = colors[Math.floor(Math.random() * colors.length)];
+		initParticle(color, {x: randomRange(rect.left, rect.right), y: randomRange(rect.top, rect.bottom)}, 1);
+	}
+}
+
 render = () => {
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	context.filter = "brightness(95%)";
