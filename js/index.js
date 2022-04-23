@@ -138,7 +138,7 @@ function revealTile(tile, isRightClick, manualClick) {
 	if (!gameOver && tile.classList.contains("flag"))
 		return toggleFlag(tile, false);
 
-	if (isRightClick) {
+	if (!gameOver && isRightClick) {
 		toggleFlag(tile, true);
 	} else {
 		tile.classList.add("dug");
