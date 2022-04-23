@@ -254,7 +254,7 @@ function startGame(difficulty) {
 }
 
 function endGame(won) {
-	// gameOver = true;
+	gameOver = true;
 	clearInterval(timerInterval);
 	console.log(won ? "won" : "lost");
 }
