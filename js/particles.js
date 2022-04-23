@@ -35,7 +35,7 @@ const velocityY = {min: -2, max: 0};
 function initParticle(colorName, position, amount) {
 	for (let i = 0; i < amount; i++) {
 		particles.push({
-			color: colors.filter(color => { return color.name == colorName })[0].color,
+			color: getComputedStyle(root).getPropertyValue("--" + colorName).trim(),
 			dimensions: {
 				x: 15 * tileScale / 65,
 				y: 15 * tileScale / 65,
@@ -59,7 +59,7 @@ function initParticle(colorName, position, amount) {
 
 function initTileParticles(tile, colors, min, max) {
 	const rect = tile.getBoundingClientRect();
-	
+
 	for (let i = 0; i < randomRangeInt(min, max); i++) {
 		const color = colors[Math.floor(Math.random() * colors.length)];
 		initParticle(color, {x: randomRange(rect.left, rect.right), y: randomRange(rect.top, rect.bottom)}, 1);

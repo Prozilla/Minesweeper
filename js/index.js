@@ -144,16 +144,19 @@ function revealTile(tile, isRightClick, manualClick) {
 		tile.classList.add("dug");
 		revealedTileCount++;
 
-		// Particles
-		initTileParticles(tile, ["sand-a", "sand-b"], 0, 2);
-
 		if (hasBomb(x, y)) {
 			tile.classList.add("bomb");
+
+			// Particles
+			initTileParticles(tile, ["background-color-b", "background-color-c"], 1, 2);
 
 			if (!gameOver)
 				endGame(false);
 		} else {
 			const bombsNearTile = getTileNumber(x, y);
+
+			// Particles
+			initTileParticles(tile, ["sand-a", "sand-b"], 0, 2);
 
 			if (bombsNearTile > 0) {
 				tile.textContent = bombsNearTile;
