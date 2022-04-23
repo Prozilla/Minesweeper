@@ -5,6 +5,7 @@ const timer = document.querySelector("#timer p");
 const difficultyDropdown = document.querySelector("#difficulty select");
 
 let size;
+let tileScale;
 let tileCount;
 let revealedTileCount;
 let bombCount;
@@ -81,7 +82,8 @@ function revealArea(xPos, yPos, depth) {
 
 				const tile = grid.children[x + size * y];
 				if (x >= 0 && x < size && y >= 0 && y < size && !checkedTiles.includes(tile)) {
-					const delay = tileRevealDelay - (tileRevealDelay / 20 * depth * depth)  - (Math.random() * tileRevealDelay / 10);
+					let delay = tileRevealDelay * size / 10;
+					delay = delay - ((delay / 20) / (size / 10) * (depth * depth))  - (Math.random() * delay / 10);
 
 					if (delay <= 0) {
 						revealTileInArea(tile, x, y, depth);
@@ -151,7 +153,7 @@ function revealTile(tile, isRightClick, area) {
 		revealedTileCount++;
 
 		// Particles
-		initTileParticles(tile, ["sand-a", "sand-b"], 1, 3);
+		initTileParticles(tile, ["sand-a", "sand-b"], 0, 2);
 
 		if (hasBomb(x, y)) {
 			tile.classList.add("bomb");
@@ -252,7 +254,7 @@ function startGame(difficulty) {
 }
 
 function endGame(won) {
-	gameOver = true;
+	// gameOver = true;
 	clearInterval(timerInterval);
 	console.log(won ? "won" : "lost");
 }
@@ -308,7 +310,8 @@ function setFontSize() {
 	if (!grid.firstElementChild)
 		return;
 
-	const fontSize = grid.firstElementChild.getBoundingClientRect().width / 3;
+	tileScale = grid.firstElementChild.getBoundingClientRect().width;
+	const fontSize = tileScale / 3;
 	grid.style.setProperty("--icon-size", fontSize + "px");
 }
 

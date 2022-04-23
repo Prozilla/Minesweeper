@@ -37,8 +37,8 @@ function initParticle(colorName, position, amount) {
 		particles.push({
 			color: colors.filter(color => { return color.name == colorName })[0].color,
 			dimensions: {
-				x: 15,
-				y: 15,
+				x: 15 * tileScale / 65,
+				y: 15 * tileScale / 65,
 			},
 			scale: {
 				x: 1,
