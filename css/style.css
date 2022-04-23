@@ -203,6 +203,17 @@ main {
 
 /* #endregion */
 
+/* #region PARTICLES */
+
+canvas {
+	position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+/* #endregion */
+
 /* #region RESPONSIVENESS */
 
 @media screen and (max-width: 660px) {

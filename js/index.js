@@ -1,4 +1,3 @@
-const root = document.querySelector(":root");
 const header = document.querySelector("header");
 const grid = document.querySelector("#grid");
 const flagCounter = document.querySelector("#flag-counter p");
@@ -119,8 +118,6 @@ function toggleFlag(tile, add) {
 			correctFlagsCount--;
 	}
 
-	console.log(correctFlagsCount);
-
 	flagCounter.textContent = flagCount;
 }
 
@@ -141,6 +138,13 @@ function revealTile(tile, isRightClick, area) {
 	} else {
 		tile.classList.add("dug");
 		revealedTileCount++;
+
+		// Particles
+		const rect = tile.getBoundingClientRect();
+		for (let i = 0; i < randomRange(1, 3); i++) {
+			const color = Math.random > 0.5 ? "sand-a" : "sand-b";
+			initParticle(color, {x: randomRange(rect.left, rect.right), y: randomRange(rect.top, rect.bottom)}, 1);
+		}
 
 		if (hasBomb(x, y)) {
 			tile.classList.add("bomb");
@@ -243,7 +247,7 @@ function startGame(difficulty) {
 function endGame(won) {
 	gameOver = true;
 	clearInterval(timerInterval);
-	console.log(won);
+	console.log(won ? "won" : "lost");
 }
 
 //#endregion
