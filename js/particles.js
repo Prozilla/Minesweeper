@@ -17,7 +17,11 @@ const colorNames = [
 	"sand-b",
 ];
 
+let renderStart;
+let previousRenderTimestamp;
+const speedMultiplier = 0.1;
 const particles = [];
+const lifetime = 3000; // ms
 const gravity = 0.05;
 const terminalVelocity = 15;
 
@@ -32,10 +36,19 @@ randomRangeInt = (min, max) => {
 const velocityX = {min: -1, max: 1};
 const velocityY = {min: -2, max: 0};
 
+function hexToRgb(hex) {
+	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	return result ? {
+		r: parseInt(result[1], 16),
+		g: parseInt(result[2], 16),
+		b: parseInt(result[3], 16)
+	} : null;
+}
+
 function initParticle(colorName, position, amount) {
 	for (let i = 0; i < amount; i++) {
 		particles.push({
-			color: getComputedStyle(root).getPropertyValue("--" + colorName).trim(),
+			color: hexToRgb(getComputedStyle(root).getPropertyValue("--" + colorName).trim()),
 			dimensions: {
 				x: 15 * tileScale / 65,
 				y: 15 * tileScale / 65,
@@ -52,7 +65,7 @@ function initParticle(colorName, position, amount) {
 			velocity: {
 				x: randomRange(velocityX.min, velocityX.max),
 				y: randomRange(velocityY.min, velocityY.max),
-			}
+			},
 		});
 	}
 }
@@ -66,39 +79,45 @@ function initTileParticles(tile, colors, min, max) {
 	}
 }
 
-render = () => {
+function render(timestamp) {
 	context.clearRect(0, 0, canvas.width, canvas.height);
-	context.filter = "brightness(95%)";
+	context.filter = "contrast(75%)";
+
+	if (!renderStart)
+		renderStart = timestamp;
+
+	const deltaTime = (timestamp - previousRenderTimestamp) * speedMultiplier;
+	previousRenderTimestamp = timestamp;
+
+	const totalTime = timestamp - renderStart;
 
 	particles.forEach((particle, index) => {
 		const width = (particle.dimensions.x * particle.scale.x);
 		const height = (particle.dimensions.y * particle.scale.y);
+
+		if (!particle.birth)
+			particle.birth = totalTime;
+
+		particle.age = totalTime - particle.birth;
+		particle.opacity = 1 - particle.age / lifetime;
 
 		// Move canvas to position and rotate
 		context.translate(particle.position.x, particle.position.y);
 		context.rotate(particle.rotation);
 
 		// Apply forces to velocity
-		particle.velocity.y = Math.min(particle.velocity.y + gravity, terminalVelocity);
+		particle.velocity.y = Math.min(particle.velocity.y + gravity * deltaTime, terminalVelocity * deltaTime);
 		
 		// Set position
 		particle.position.x += particle.velocity.x;
 		particle.position.y += particle.velocity.y;
 		
-		// Delete confetti when out of frame
-		if (particle.position.y >= canvas.height) 
+		// Delete confetti when out of frame or age passed lifetime
+		if (particle.position.y >= canvas.height || particle.position.x < 0 || particle.position.x >= canvas.width || particle.age > lifetime) 
 			particles.splice(index, 1);
-
-		// Loop particle x position
-		if (particle.position.x > canvas.width) 
-			particle.position.x = 0;
-		if (particle.position.x < 0) 
-			particle.position.x = canvas.width;
-
-		// Spin particle by scaling y
-		context.fillStyle = particle.color;
 		
 		// Draw particle
+		context.fillStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b}, ${particle.opacity})`;
 		context.fillRect(-width / 2, -height / 2, width, height);
 		
 		// Reset transform matrix
