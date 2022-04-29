@@ -139,8 +139,10 @@ main {
 }
 
 .tile {
+	position: relative;
 	aspect-ratio: 1;
 	background-color: var(--grass-a);
+	z-index: 1;
 
 	user-select: none;
 		-moz-user-select: none;
